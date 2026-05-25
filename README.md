@@ -38,8 +38,12 @@ COS30018-IS/
 │   ├── index.html
 │   └── package.json
 ├── .gitignore
+├── AGENTS.md
 └── README.md
 ```
+
+Team members should read `AGENTS.md` before changing architecture, agent
+contracts, data handling, or repository structure.
 
 ## 1. Project Overview
 
