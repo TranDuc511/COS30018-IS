@@ -10,6 +10,37 @@ patterns, and generates an actionable business report.
 The goal is to turn raw restaurant feedback into clear operational recommendations
 without requiring the owner to manually process review text.
 
+## Repository Structure
+
+```text
+COS30018-IS/
+├── backend/
+│   ├── app/
+│   │   ├── agents/
+│   │   ├── core/
+│   │   ├── data/
+│   │   ├── schemas/
+│   │   └── main.py
+│   ├── data/
+│   │   ├── raw/
+│   │   └── processed/
+│   ├── tests/
+│   ├── .env.example
+│   └── requirements.txt
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   └── package.json
+├── .gitignore
+└── README.md
+```
+
 ## 1. Project Overview
 
 Restaurant owners often receive more review data than they can realistically read.
@@ -435,4 +466,3 @@ Planned evaluation areas:
 | Agent output is invalid | Validate every JSON output and allow up to 2 self-correction retries. |
 | Agent enters repeated failure loop | Track retry counts in Orchestrator state and halt or skip after limits are reached. |
 | Downstream agents receive missing data | Require downstream agents to handle `null` input and produce partial output when possible. |
-
