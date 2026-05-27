@@ -79,9 +79,11 @@ The system uses a supervisor-based multi-agent collaboration pattern with
 LangGraph. An Orchestrator Agent manages shared pipeline state, routes work between
 specialised agents, validates outputs, and handles failures.
 
-All LLM-powered agents use `GPT-5o` for generation and correction. Each agent must
-validate its own output against a JSON schema before passing results back to the
-Orchestrator.
+LLM-powered agents use `gpt-5.4` as the primary model and `gpt-5.4-mini` as the
+fallback model for generation and correction. If the account does not have access
+to those models, configure `OPENAI_MODEL=gpt-5` and
+`OPENAI_FALLBACK_MODEL=gpt-5-mini`. Each agent must validate its own output
+against a JSON schema before passing results back to the Orchestrator.
 
 ## 4. User Flow
 
@@ -147,11 +149,11 @@ Agent sequence:
 
 | Agent | Role | LLM | Responsibility |
 | --- | --- | --- | --- |
-| Orchestrator Agent | Supervisor | `GPT-5o` | Routes work, checks status, handles failures, retries agents, skips non-critical steps, or halts with partial output. |
-| Analysis Agent | Review analysis | `GPT-5o` | Classifies each selected review by sentiment and aspect. Runs once per sampled review. |
-| Reasoning Agent | Pattern and root-cause reasoning | `GPT-5o` | Detects recurring patterns across the analysed sample and proposes likely root causes. |
-| Strategic Agent | Recommendation generation | `GPT-5o` | Converts root causes into prioritised business actions. |
-| Report Generator Agent | Final report generation | `GPT-5o` | Produces a structured human-readable web report from upstream outputs. |
+| Orchestrator Agent | Supervisor | `gpt-5.4` / `gpt-5.4-mini` | Routes work, checks status, handles failures, retries agents, skips non-critical steps, or halts with partial output. |
+| Analysis Agent | Review analysis | `gpt-5.4` / `gpt-5.4-mini` | Classifies each selected review by sentiment and aspect. Runs once per sampled review. |
+| Reasoning Agent | Pattern and root-cause reasoning | `gpt-5.4` / `gpt-5.4-mini` | Detects recurring patterns across the analysed sample and proposes likely root causes. |
+| Strategic Agent | Recommendation generation | `gpt-5.4` / `gpt-5.4-mini` | Converts root causes into prioritised business actions. |
+| Report Generator Agent | Final report generation | `gpt-5.4` / `gpt-5.4-mini` | Produces a structured human-readable web report from upstream outputs. |
 
 ## 9. Data Flow Summary
 
@@ -427,7 +429,7 @@ Draft schema:
 | --- | --- |
 | Language | Python 3.10+ |
 | Agent framework | LangChain + LangGraph |
-| LLM | OpenAI `GPT-5o` |
+| LLM | OpenAI `gpt-5.4` primary, `gpt-5.4-mini` fallback |
 | Data processing | Pandas |
 | Business-name matching | Fuzzy matching library such as RapidFuzz |
 | Dataset | Yelp Open Dataset from Kaggle |

@@ -21,7 +21,9 @@ Read this before changing the project structure or implementation plan.
 
 These decisions are already agreed for the current plan:
 
-- Use `GPT-5o` consistently for LLM-powered agents.
+- Use `gpt-5.4` as the primary model for LLM-powered agents.
+- Use `gpt-5.4-mini` as the fallback model when the primary model is unavailable.
+- If the account does not have access to those models, use `gpt-5` and `gpt-5-mini`.
 - Randomly sample up to 100 review records per selected restaurant.
 - Do not claim that the system analyses every review in the Yelp dataset.
 - Agent self-correction retry limit is 2.
