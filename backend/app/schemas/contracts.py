@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -56,6 +56,27 @@ class Recommendation(BaseModel):
 
 class StrategicAgentOutput(BaseModel):
     recommendations: list[Recommendation] = Field(default_factory=list)
+    status: Literal["success", "error"]
+    error_detail: str | None = None
+
+
+class ReportGeneratorInput(BaseModel):
+    business_name: str
+    sample_size: int = Field(ge=0)
+    analysis_summary: dict[str, Any] = Field(default_factory=dict)
+    reasoning_summary: dict[str, Any] = Field(default_factory=dict)
+    recommendations: list[Recommendation] = Field(default_factory=list)
+
+
+class ReportOutput(BaseModel):
+    title: str = "Restaurant Review Analysis Report"
+    business_name: str = ""
+    sample_size: int = Field(default=0, ge=0)
+    executive_summary: str = ""
+    key_findings: list[str] = Field(default_factory=list)
+    root_causes: list[RootCause] = Field(default_factory=list)
+    recommendations: list[Recommendation] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
     status: Literal["success", "error"]
     error_detail: str | None = None
 

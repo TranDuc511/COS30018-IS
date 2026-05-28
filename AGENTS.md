@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file tells Codex and team members how to work inside this repository.
+This file tells Codex and Claude and team members how to work inside this repository.
 Read this before changing the project structure or implementation plan.
 
 ## Communication
