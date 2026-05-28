@@ -13,8 +13,18 @@ from app.schemas.contracts import (
 )
 
 
-DEFAULT_MODEL = "gpt-5.4"
-DEFAULT_FALLBACK_MODEL = "gpt-5.4-mini"
+OPENAI_PROVIDER = "openai"
+
+# Temporary live-agent testing only. Gemini is not part of the production project
+# plan and should be removed after fallback testing is finished.
+GEMINI_PROVIDER = "gemini"
+DEFAULT_PROVIDER = OPENAI_PROVIDER
+DEFAULT_OPENAI_MODEL = "gpt-5.4"
+DEFAULT_OPENAI_FALLBACK_MODEL = "gpt-5.4-mini"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
+DEFAULT_GEMINI_FALLBACK_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_GEMINI_REASONING_EFFORT = "low"
+GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 MAX_SELF_CORRECTION_RETRIES = 2
 
 
@@ -51,28 +61,32 @@ def _generate_report_deterministically(report_input: ReportGeneratorInput) -> di
 
 def _generate_report_with_llm(report_input: ReportGeneratorInput) -> dict:
     _load_environment()
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        return _error_output("OPENAI_API_KEY is not set.")
+    provider = _llm_provider()
+    if provider not in {OPENAI_PROVIDER, GEMINI_PROVIDER}:
+        return _error_output(
+            f"Unsupported LLM_PROVIDER '{provider}'. Use 'openai' or 'gemini'."
+        )
 
     try:
         from openai import OpenAI
     except ImportError:
         return _error_output("The openai package is not installed.")
 
-    client = OpenAI(api_key=api_key)
+    client = _llm_client(OpenAI, provider)
+    if isinstance(client, str):
+        return _error_output(client)
+
     messages = _llm_messages(report_input)
     last_error = "Unknown validation error."
 
-    for model in _candidate_models():
+    for model in _candidate_models(provider):
         for _ in range(MAX_SELF_CORRECTION_RETRIES + 1):
             content = ""
             try:
                 response = client.chat.completions.create(
                     model=model,
                     messages=messages,
-                    response_format={"type": "json_object"},
-                    temperature=0,
+                    **_completion_options(provider),
                 )
                 content = response.choices[0].message.content or "{}"
                 payload = json.loads(content)
@@ -136,16 +150,53 @@ def _load_environment() -> None:
     load_dotenv()
 
 
-def _candidate_models() -> list[str]:
-    configured_model = os.getenv("OPENAI_MODEL")
-    if configured_model:
-        return [configured_model]
+def _llm_provider() -> str:
+    return os.getenv("LLM_PROVIDER", DEFAULT_PROVIDER).lower().strip()
 
-    models = [DEFAULT_MODEL]
-    fallback_model = os.getenv("OPENAI_FALLBACK_MODEL", DEFAULT_FALLBACK_MODEL)
+
+def _llm_client(openai_client: Any, provider: str) -> Any:
+    if provider == GEMINI_PROVIDER:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            return "GEMINI_API_KEY is not set."
+        return openai_client(api_key=api_key, base_url=GEMINI_OPENAI_BASE_URL)
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return "OPENAI_API_KEY is not set."
+    return openai_client(api_key=api_key)
+
+
+def _candidate_models(provider: str | None = None) -> list[str]:
+    provider = provider or _llm_provider()
+
+    if provider == GEMINI_PROVIDER:
+        primary_model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+        models = [primary_model]
+        fallback_model = os.getenv("GEMINI_FALLBACK_MODEL", DEFAULT_GEMINI_FALLBACK_MODEL)
+        if fallback_model and fallback_model not in models:
+            models.append(fallback_model)
+        return models
+
+    primary_model = os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
+    models = [primary_model]
+    fallback_model = os.getenv("OPENAI_FALLBACK_MODEL", DEFAULT_OPENAI_FALLBACK_MODEL)
     if fallback_model and fallback_model not in models:
         models.append(fallback_model)
     return models
+
+
+def _completion_options(provider: str) -> dict[str, Any]:
+    options = {
+        "response_format": {"type": "json_object"},
+        "temperature": 0,
+    }
+    if provider == GEMINI_PROVIDER:
+        options["reasoning_effort"] = os.getenv(
+            "GEMINI_REASONING_EFFORT",
+            DEFAULT_GEMINI_REASONING_EFFORT,
+        )
+    return options
 
 
 def _root_causes_from_reasoning(reasoning_summary: dict[str, Any]) -> list[RootCause]:

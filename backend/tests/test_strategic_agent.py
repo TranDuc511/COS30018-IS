@@ -109,7 +109,7 @@ def test_candidate_models_allow_explicit_primary_override(monkeypatch):
     monkeypatch.setenv("OPENAI_MODEL", "gpt-5")
     monkeypatch.setenv("OPENAI_FALLBACK_MODEL", "gpt-5-mini")
 
-    assert _candidate_models() == ["gpt-5"]
+    assert _candidate_models() == ["gpt-5", "gpt-5-mini"]
 
 
 def test_candidate_models_support_gemini_defaults(monkeypatch):
@@ -125,7 +125,7 @@ def test_candidate_models_allow_explicit_gemini_override(monkeypatch):
     monkeypatch.setenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
     monkeypatch.setenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash")
 
-    assert _candidate_models() == ["gemini-3.1-flash-lite"]
+    assert _candidate_models() == ["gemini-3.1-flash-lite", "gemini-2.5-flash"]
 
 
 def test_gemini_completion_options_use_low_reasoning_by_default(monkeypatch):

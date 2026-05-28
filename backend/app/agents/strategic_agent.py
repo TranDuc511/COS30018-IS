@@ -191,21 +191,15 @@ def _candidate_models(provider: str | None = None) -> list[str]:
     provider = provider or _llm_provider()
 
     if provider == GEMINI_PROVIDER:
-        configured_model = os.getenv("GEMINI_MODEL")
-        if configured_model:
-            return [configured_model]
-
-        models = [DEFAULT_GEMINI_MODEL]
+        primary_model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+        models = [primary_model]
         fallback_model = os.getenv("GEMINI_FALLBACK_MODEL", DEFAULT_GEMINI_FALLBACK_MODEL)
         if fallback_model and fallback_model not in models:
             models.append(fallback_model)
         return models
 
-    configured_model = os.getenv("OPENAI_MODEL")
-    if configured_model:
-        return [configured_model]
-
-    models = [DEFAULT_OPENAI_MODEL]
+    primary_model = os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
+    models = [primary_model]
     fallback_model = os.getenv("OPENAI_FALLBACK_MODEL", DEFAULT_OPENAI_FALLBACK_MODEL)
     if fallback_model and fallback_model not in models:
         models.append(fallback_model)
